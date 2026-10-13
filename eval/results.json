@@ -1,0 +1,401 @@
+{
+  "metrics": {
+    "direct_prompt": {
+      "strategy": "direct_prompt",
+      "total_tasks": 6,
+      "top_1_fl_accuracy": 0.833,
+      "top_5_fl_accuracy": 0.833,
+      "diagnosis_correctness": 0.0,
+      "inconclusive_rate": 0.0,
+      "verified_fix_rate": 0.833,
+      "regression_rate": 0.0,
+      "avg_prompt_tokens": 217.2,
+      "avg_completion_tokens": 49,
+      "avg_total_tokens": 266.2,
+      "avg_cost_usd": 6e-05,
+      "cost_per_verified_fix": 7e-05,
+      "median_latency_seconds": 0.003,
+      "p95_latency_seconds": 0.005
+    },
+    "traceback_text_search": {
+      "strategy": "traceback_text_search",
+      "total_tasks": 6,
+      "top_1_fl_accuracy": 0.833,
+      "top_5_fl_accuracy": 0.833,
+      "diagnosis_correctness": 0.333,
+      "inconclusive_rate": 0.0,
+      "verified_fix_rate": 0.833,
+      "regression_rate": 0.0,
+      "avg_prompt_tokens": 228.2,
+      "avg_completion_tokens": 49,
+      "avg_total_tokens": 277.2,
+      "avg_cost_usd": 6e-05,
+      "cost_per_verified_fix": 8e-05,
+      "median_latency_seconds": 0.002,
+      "p95_latency_seconds": 0.003
+    },
+    "fixed_context": {
+      "strategy": "fixed_context",
+      "total_tasks": 6,
+      "top_1_fl_accuracy": 0.833,
+      "top_5_fl_accuracy": 0.833,
+      "diagnosis_correctness": 0.833,
+      "inconclusive_rate": 0.0,
+      "verified_fix_rate": 0.833,
+      "regression_rate": 0.0,
+      "avg_prompt_tokens": 330.7,
+      "avg_completion_tokens": 49,
+      "avg_total_tokens": 379.7,
+      "avg_cost_usd": 8e-05,
+      "cost_per_verified_fix": 9e-05,
+      "median_latency_seconds": 0.002,
+      "p95_latency_seconds": 0.005
+    },
+    "heuristic_retrieval": {
+      "strategy": "heuristic_retrieval",
+      "total_tasks": 6,
+      "top_1_fl_accuracy": 0.833,
+      "top_5_fl_accuracy": 0.833,
+      "diagnosis_correctness": 0.833,
+      "inconclusive_rate": 0.0,
+      "verified_fix_rate": 0.833,
+      "regression_rate": 0.0,
+      "avg_prompt_tokens": 331.3,
+      "avg_completion_tokens": 49,
+      "avg_total_tokens": 380.3,
+      "avg_cost_usd": 8e-05,
+      "cost_per_verified_fix": 9e-05,
+      "median_latency_seconds": 0.002,
+      "p95_latency_seconds": 0.004
+    },
+    "adaptive_evidence": {
+      "strategy": "adaptive_evidence",
+      "total_tasks": 6,
+      "top_1_fl_accuracy": 0.833,
+      "top_5_fl_accuracy": 0.833,
+      "diagnosis_correctness": 0.833,
+      "inconclusive_rate": 0.0,
+      "verified_fix_rate": 0.833,
+      "regression_rate": 0.0,
+      "avg_prompt_tokens": 330.7,
+      "avg_completion_tokens": 49,
+      "avg_total_tokens": 379.7,
+      "avg_cost_usd": 8e-05,
+      "cost_per_verified_fix": 9e-05,
+      "median_latency_seconds": 0.002,
+      "p95_latency_seconds": 0.004
+    }
+  },
+  "raw_traces": [
+    {
+      "case_id": "case_01_zerodiv",
+      "strategy": "direct_prompt",
+      "latency": 0.005,
+      "tokens": 277,
+      "top_cands": [
+        "window_average",
+        "test_window_average_normal",
+        "test_window_average_empty"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_02_boundary",
+      "strategy": "direct_prompt",
+      "latency": 0.002,
+      "tokens": 273,
+      "top_cands": [
+        "paginate_items"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_03_wrong_key",
+      "strategy": "direct_prompt",
+      "latency": 0.003,
+      "tokens": 277,
+      "top_cands": [
+        "parse_auth_token",
+        "test_valid_token",
+        "test_missing_token"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_04_logic_tax",
+      "strategy": "direct_prompt",
+      "latency": 0.003,
+      "tokens": 258,
+      "top_cands": [
+        "apply_discount"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_05_ambiguous",
+      "strategy": "direct_prompt",
+      "latency": 0.001,
+      "tokens": 255,
+      "top_cands": [],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_06_regression_trap",
+      "strategy": "direct_prompt",
+      "latency": 0.002,
+      "tokens": 257,
+      "top_cands": [
+        "sanitize_string"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_01_zerodiv",
+      "strategy": "traceback_text_search",
+      "latency": 0.003,
+      "tokens": 306,
+      "top_cands": [
+        "window_average",
+        "test_window_average_normal",
+        "test_window_average_empty"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_02_boundary",
+      "strategy": "traceback_text_search",
+      "latency": 0.002,
+      "tokens": 273,
+      "top_cands": [
+        "paginate_items"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_03_wrong_key",
+      "strategy": "traceback_text_search",
+      "latency": 0.003,
+      "tokens": 314,
+      "top_cands": [
+        "parse_auth_token",
+        "test_valid_token",
+        "test_missing_token"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_04_logic_tax",
+      "strategy": "traceback_text_search",
+      "latency": 0.002,
+      "tokens": 258,
+      "top_cands": [
+        "apply_discount"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_05_ambiguous",
+      "strategy": "traceback_text_search",
+      "latency": 0.001,
+      "tokens": 255,
+      "top_cands": [],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_06_regression_trap",
+      "strategy": "traceback_text_search",
+      "latency": 0.002,
+      "tokens": 257,
+      "top_cands": [
+        "sanitize_string"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_01_zerodiv",
+      "strategy": "fixed_context",
+      "latency": 0.005,
+      "tokens": 431,
+      "top_cands": [
+        "window_average",
+        "test_window_average_normal",
+        "test_window_average_empty"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_02_boundary",
+      "strategy": "fixed_context",
+      "latency": 0.002,
+      "tokens": 421,
+      "top_cands": [
+        "paginate_items"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_03_wrong_key",
+      "strategy": "fixed_context",
+      "latency": 0.003,
+      "tokens": 438,
+      "top_cands": [
+        "parse_auth_token",
+        "test_valid_token",
+        "test_missing_token"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_04_logic_tax",
+      "strategy": "fixed_context",
+      "latency": 0.002,
+      "tokens": 378,
+      "top_cands": [
+        "apply_discount"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_05_ambiguous",
+      "strategy": "fixed_context",
+      "latency": 0.001,
+      "tokens": 255,
+      "top_cands": [],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_06_regression_trap",
+      "strategy": "fixed_context",
+      "latency": 0.002,
+      "tokens": 355,
+      "top_cands": [
+        "sanitize_string"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_01_zerodiv",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.004,
+      "tokens": 434,
+      "top_cands": [
+        "window_average",
+        "test_window_average_normal",
+        "test_window_average_empty"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_02_boundary",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.002,
+      "tokens": 421,
+      "top_cands": [
+        "paginate_items"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_03_wrong_key",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.003,
+      "tokens": 439,
+      "top_cands": [
+        "parse_auth_token",
+        "test_valid_token",
+        "test_missing_token"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_04_logic_tax",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.002,
+      "tokens": 378,
+      "top_cands": [
+        "apply_discount"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_05_ambiguous",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.001,
+      "tokens": 255,
+      "top_cands": [],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_06_regression_trap",
+      "strategy": "heuristic_retrieval",
+      "latency": 0.002,
+      "tokens": 355,
+      "top_cands": [
+        "sanitize_string"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_01_zerodiv",
+      "strategy": "adaptive_evidence",
+      "latency": 0.003,
+      "tokens": 431,
+      "top_cands": [
+        "window_average",
+        "test_window_average_normal",
+        "test_window_average_empty"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_02_boundary",
+      "strategy": "adaptive_evidence",
+      "latency": 0.002,
+      "tokens": 421,
+      "top_cands": [
+        "paginate_items"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_03_wrong_key",
+      "strategy": "adaptive_evidence",
+      "latency": 0.004,
+      "tokens": 438,
+      "top_cands": [
+        "parse_auth_token",
+        "test_valid_token",
+        "test_missing_token"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_04_logic_tax",
+      "strategy": "adaptive_evidence",
+      "latency": 0.002,
+      "tokens": 378,
+      "top_cands": [
+        "apply_discount"
+      ],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_05_ambiguous",
+      "strategy": "adaptive_evidence",
+      "latency": 0.001,
+      "tokens": 255,
+      "top_cands": [],
+      "inconclusive": false
+    },
+    {
+      "case_id": "case_06_regression_trap",
+      "strategy": "adaptive_evidence",
+      "latency": 0.002,
+      "tokens": 355,
+      "top_cands": [
+        "sanitize_string"
+      ],
+      "inconclusive": false
+    }
+  ]
+}

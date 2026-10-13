@@ -1,0 +1,26 @@
+{
+  "budget_500": {
+    "budget_limit": 500,
+    "diagnosis_correctness": 0.833,
+    "verified_fix_rate": 0.833,
+    "avg_tokens_used": 379.7
+  },
+  "budget_1000": {
+    "budget_limit": 1000,
+    "diagnosis_correctness": 0.833,
+    "verified_fix_rate": 0.833,
+    "avg_tokens_used": 379.7
+  },
+  "budget_2000": {
+    "budget_limit": 2000,
+    "diagnosis_correctness": 0.833,
+    "verified_fix_rate": 0.833,
+    "avg_tokens_used": 379.7
+  },
+  "budget_4000": {
+    "budget_limit": 4000,
+    "diagnosis_correctness": 0.833,
+    "verified_fix_rate": 0.833,
+    "avg_tokens_used": 379.7
+  }
+}

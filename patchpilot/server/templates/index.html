@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PatchPilot — Evidence-First, Budget-Aware AI Debugger</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #6366f1;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at 15% 15%, #0f172a 0%, var(--bg-dark) 100%);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+    }
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #fff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .status-badges {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .badge {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .badge.mock { border-color: rgba(245, 158, 11, 0.4); color: #fbbf24; }
+    .badge.sandbox { border-color: rgba(16, 185, 129, 0.4); color: #34d399; }
+
+    .nav-tabs {
+      display: flex;
+      gap: 1rem;
+      padding: 0 2rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.85rem 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--accent-cyan);
+    }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent-cyan);
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 1.5rem;
+    }
+
+    .panel {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .panel h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    label {
+      display: block;
+      font-size: 0.825rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.875rem;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-cyan);
+    }
+    textarea {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      resize: vertical;
+    }
+    .range-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent-cyan);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-indigo));
+      color: #fff;
+    }
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+    .btn-success {
+      background: var(--accent-emerald);
+      color: #fff;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .metrics-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+    }
+    .metric-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metric-val {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+    }
+
+    .candidate-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.85rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .candidate-card:hover, .candidate-card.active {
+      border-color: var(--accent-cyan);
+    }
+    .cand-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .cand-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #38bdf8;
+    }
+    .cand-score {
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--accent-cyan);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .diag-box {
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 4px solid var(--accent-indigo);
+      border-radius: 0 8px 8px 0;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .diag-title {
+      font-size: 0.85rem;
+      color: #a5b4fc;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .diag-text {
+      font-size: 0.925rem;
+      line-height: 1.5;
+    }
+
+    pre {
+      background: #020617;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      overflow-x: auto;
+      line-height: 1.4;
+      color: #cbd5e1;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th {
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .loader {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      margin-top: 0.5rem;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(6, 182, 212, 0.3);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">P</div>
+      <div>
+        <h1>PatchPilot</h1>
+        <p style="font-size: 0.7rem; color: var(--text-muted);">Evidence-First, Budget-Aware AI Debugger</p>
+      </div>
+    </div>
+    <div class="status-badges">
+      <span class="badge" id="modeBadge">Checking Mode...</span>
+      <span class="badge" id="sandboxBadge">Checking Sandbox...</span>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('debug', event)">Interactive Debugger</button>
+    <button class="tab-btn" onclick="switchTab('benchmark', event)">Evaluation Baselines & Ablations</button>
+    <button class="tab-btn" onclick="switchTab('history', event)">Execution History</button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: INTERACTIVE DEBUGGER -->
+    <div id="tabDebug">
+      <div class="metrics-ribbon" id="metricsRibbon">
+        <div class="metric-card">
+          <div class="metric-title">Total Tokens</div>
+          <div class="metric-val" id="metTokens">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Estimated Cost</div>
+          <div class="metric-val" id="metCost">$0.0000</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Pipeline Latency</div>
+          <div class="metric-val" id="metLat">0.00s</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-title">Verification Outcome</div>
+          <div class="metric-val" id="metOutcome" style="font-size: 1.1rem; color: var(--accent-amber);">READY</div>
+        </div>
+      </div>
+
+      <div class="grid-layout">
+        <!-- Left Column: Input Form -->
+        <div class="panel">
+          <h2>Task Parameters</h2>
+
+          <div class="form-group">
+            <label>Repository Path</label>
+            <input type="text" id="repoPath" value="." placeholder="Absolute or relative path">
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+              Quick load sample: <a href="javascript:loadSampleRepo()" style="color: var(--accent-cyan); text-decoration: none;">Load Built-in Benchmark Repo</a>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Bug Description</label>
+            <textarea id="bugDesc" rows="3" placeholder="Describe the symptom, expected vs actual behavior...">ZeroDivisionError in calculate_average when numbers list is empty</textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Traceback / Test Failure (Optional)</label>
+            <textarea id="rawTb" rows="4" placeholder="Paste python traceback or pytest failure output...">Traceback (most recent call last):
+  File "main.py", line 6, in calculate_average
+    return total / len(numbers)
+ZeroDivisionError: division by zero</textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Evidence Selection Policy</label>
+            <select id="strategy">
+              <option value="adaptive_evidence">Adaptive Evidence Selection (Proposed Policy)</option>
+              <option value="heuristic_retrieval">Heuristic Retrieval Baseline</option>
+              <option value="fixed_context">Fixed-Context Baseline</option>
+              <option value="traceback_text_search">Traceback & Text-Search Baseline</option>
+              <option value="direct_prompt">Direct LLM Diagnosis Baseline</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <div class="range-wrap">
+              <label style="margin: 0;">Context Budget:</label>
+              <span id="budgetDisplay" style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 600;">2000</span> tokens
+            </div>
+            <input type="range" id="budgetRange" min="400" max="8000" step="200" value="2000" oninput="document.getElementById('budgetDisplay').innerText = this.value">
+          </div>
+
+          <button class="btn btn-primary" id="btnDiagnose" onclick="runDiagnosis()">
+            Run Evidence-Grounded Diagnosis
+          </button>
+          <div class="loader" id="diagLoader">
+            <div class="spinner"></div> Indexing AST, ranking faults & synthesizing evidence...
+          </div>
+        </div>
+
+        <!-- Right Column: Results & Inspection -->
+        <div class="panel">
+          <h2>Evidence & Diagnosis Results</h2>
+
+          <!-- Diagnosis Box -->
+          <div class="diag-box" id="diagBox" style="display: none;">
+            <div class="diag-title">ROOT-CAUSE HYPOTHESIS (<span id="confScore"></span> confidence)</div>
+            <div class="diag-text" id="diagHypothesis"></div>
+            <div style="margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted);" id="diagMeta"></div>
+          </div>
+
+          <!-- Top Candidates -->
+          <h3 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Ranked Fault Locations (Top 5 Candidate Functions)</h3>
+          <div id="candidatesList">
+            <div style="color: var(--text-muted); font-size: 0.85rem;">Run diagnosis to inspect candidate functions.</div>
+          </div>
+
+          <!-- Evidence Inspector -->
+          <div style="margin-top: 1.5rem;">
+            <h3 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Selected Evidence Bundle & Budget Usage</h3>
+            <div id="evidenceList">
+              <div style="color: var(--text-muted); font-size: 0.85rem;">No evidence selected yet.</div>
+            </div>
+          </div>
+
+          <!-- Patch Verification Box -->
+          <div style="margin-top: 1.5rem; display: none;" id="patchSection">
+            <h3 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Patch Verification & Isolated Sandbox</h3>
+            <label>Proposed Unified Diff (Review or edit before applying):</label>
+            <textarea id="patchDiffView" rows="6" style="margin-bottom: 1rem; font-family: var(--font-mono);"></textarea>
+            <button class="btn btn-success" onclick="verifyPatch()">
+              Apply Patch & Run Reproduction + Regression Tests
+            </button>
+            <div id="verifyOutcomeBox" style="margin-top: 1rem; font-size: 0.85rem;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: EVALUATION BENCHMARK -->
+    <div id="tabBenchmark" style="display: none;">
+      <div class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h2>Comparative Baseline Evaluation</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Empirical testing across 6 synthetic test repositories comparing Top-1/Top-5 fault localisation, verified fix rates, and token efficiency.
+            </p>
+          </div>
+          <button class="btn btn-primary" style="width: auto;" onclick="runBenchmarkLive()">
+            Run Full Evaluation Runner
+          </button>
+        </div>
+
+        <div class="loader" id="benchLoader">
+          <div class="spinner"></div> Running 30 test iterations across all 5 baselines...
+        </div>
+
+        <table id="benchTable">
+          <thead>
+            <tr>
+              <th>Strategy</th>
+              <th>Top-1 FL</th>
+              <th>Top-5 FL</th>
+              <th>Diagnosis Correct</th>
+              <th>Inconclusive</th>
+              <th>Verified Fix</th>
+              <th>Avg Tokens</th>
+              <th>Median Latency</th>
+            </tr>
+          </thead>
+          <tbody id="benchBody">
+            <tr>
+              <td><code>direct_prompt</code></td>
+              <td>83.3%</td><td>83.3%</td><td>0.0%</td><td>0.0%</td><td>83.3%</td><td>266</td><td>0.003s</td>
+            </tr>
+            <tr>
+              <td><code>traceback_text_search</code></td>
+              <td>83.3%</td><td>83.3%</td><td>33.3%</td><td>0.0%</td><td>83.3%</td><td>277</td><td>0.002s</td>
+            </tr>
+            <tr>
+              <td><code>fixed_context</code></td>
+              <td>83.3%</td><td>83.3%</td><td>83.3%</td><td>0.0%</td><td>83.3%</td><td>380</td><td>0.003s</td>
+            </tr>
+            <tr>
+              <td><code>heuristic_retrieval</code></td>
+              <td>83.3%</td><td>83.3%</td><td>83.3%</td><td>0.0%</td><td>83.3%</td><td>380</td><td>0.002s</td>
+            </tr>
+            <tr>
+              <td><code>adaptive_evidence</code></td>
+              <td>83.3%</td><td>83.3%</td><td>83.3%</td><td>0.0%</td><td>83.3%</td><td>380</td><td>0.002s</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: HISTORY -->
+    <div id="tabHistory" style="display: none;">
+      <div class="panel">
+        <h2>Past Debugging Execution Traces</h2>
+        <table id="tracesTable">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Repository</th>
+              <th>Strategy</th>
+              <th>Tokens</th>
+              <th>Cost (USD)</th>
+              <th>Status</th>
+              <th>Latency</th>
+            </tr>
+          </thead>
+          <tbody id="tracesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let currentTrace = null;
+
+    async function initStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        const modeBadge = document.getElementById('modeBadge');
+        const sandboxBadge = document.getElementById('sandboxBadge');
+
+        if (data.is_mock_mode) {
+          modeBadge.innerText = 'Provider: Mock Mode (Offline Deterministic)';
+          modeBadge.className = 'badge mock';
+        } else {
+          modeBadge.innerText = `Provider: ${data.llm_provider}`;
+          modeBadge.className = 'badge sandbox';
+        }
+
+        sandboxBadge.innerText = `Sandbox: ${data.sandbox.mode}`;
+        sandboxBadge.className = 'badge sandbox';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function switchTab(tab, event) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tabDebug').style.display = tab === 'debug' ? 'block' : 'none';
+      document.getElementById('tabBenchmark').style.display = tab === 'benchmark' ? 'block' : 'none';
+      document.getElementById('tabHistory').style.display = tab === 'history' ? 'block' : 'none';
+      if (event && event.target) event.target.classList.add('active');
+
+      if (tab === 'history') loadTraces();
+    }
+
+    async function runDiagnosis() {
+      const loader = document.getElementById('diagLoader');
+      loader.style.display = 'flex';
+
+      const payload = {
+        repo_path: document.getElementById('repoPath').value,
+        bug_description: document.getElementById('bugDesc').value,
+        raw_traceback: document.getElementById('rawTb').value,
+        strategy: document.getElementById('strategy').value,
+        token_budget: parseInt(document.getElementById('budgetRange').value),
+      };
+
+      try {
+        const res = await fetch('/api/diagnose', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert('Error: ' + (err.detail || 'Diagnosis failed'));
+          return;
+        }
+
+        const trace = await res.json();
+        currentTrace = trace;
+        renderResults(trace);
+      } catch (e) {
+        alert('Network or server error: ' + e);
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    function renderResults(trace) {
+      // Metrics Ribbon
+      document.getElementById('metTokens').innerText = trace.accounting.total_tokens;
+      document.getElementById('metCost').innerText = '$' + trace.accounting.estimated_cost_usd.toFixed(4);
+      document.getElementById('metLat').innerText = trace.latency_seconds.toFixed(2) + 's';
+      
+      const metOutcome = document.getElementById('metOutcome');
+      if (trace.diagnosis && trace.diagnosis.is_inconclusive) {
+        metOutcome.innerText = 'INCONCLUSIVE';
+        metOutcome.style.color = 'var(--accent-amber)';
+      } else {
+        metOutcome.innerText = trace.diagnosis ? trace.diagnosis.validation_status : 'READY';
+        metOutcome.style.color = 'var(--accent-emerald)';
+      }
+
+      // Diagnosis Box
+      const diagBox = document.getElementById('diagBox');
+      if (trace.diagnosis) {
+        diagBox.style.display = 'block';
+        document.getElementById('confScore').innerText = Math.round(trace.diagnosis.confidence_score * 100) + '%';
+        document.getElementById('diagHypothesis').innerText = trace.diagnosis.root_cause_hypothesis;
+        document.getElementById('diagMeta').innerText =
+          `Citations: ${trace.diagnosis.supporting_evidence_references.join(', ') || 'None'} | Recommended Tests: ${trace.diagnosis.recommended_tests.join(', ') || 'None'}`;
+      }
+
+      // Candidates
+      const candsList = document.getElementById('candidatesList');
+      candsList.innerHTML = '';
+      if (!trace.top_candidates || trace.top_candidates.length === 0) {
+        candsList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No candidates exceeded the confidence threshold.</div>';
+      } else {
+        trace.top_candidates.forEach((c, idx) => {
+          const div = document.createElement('div');
+          div.className = 'candidate-card';
+          div.innerHTML = `
+            <div class="cand-header">
+              <span class="cand-name">#${idx+1} ${c.symbol_name}</span>
+              <span class="cand-score">Score: ${c.features.total_score}</span>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">
+              ${c.file_path}:${c.start_line}-${c.end_line} • ${c.rationale}
+            </div>
+          `;
+          candsList.appendChild(div);
+        });
+      }
+
+      // Evidence Bundle
+      const evList = document.getElementById('evidenceList');
+      evList.innerHTML = '';
+      if (trace.evidence_bundle && trace.evidence_bundle.items.length > 0) {
+        trace.evidence_bundle.items.forEach(it => {
+          const div = document.createElement('div');
+          div.style.marginBottom = '0.75rem';
+          div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+              <span style="font-family: var(--font-mono); color: var(--accent-cyan);">${it.item_id} [${it.evidence_type}]</span>
+              <span style="color: var(--text-muted);">${it.estimated_token_count} tokens</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px;">${it.relation_to_fault}</div>
+            <pre><code>${escapeHtml(it.code_content.slice(0, 300))}</code></pre>
+          `;
+          evList.appendChild(div);
+        });
+      } else {
+        evList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">No code snippets included in this evidence bundle.</div>';
+      }
+
+      // Patch Section
+      const patchSection = document.getElementById('patchSection');
+      const patchDiffView = document.getElementById('patchDiffView');
+      if (trace.diagnosis && (trace.diagnosis.is_patch_justified || trace.diagnosis.suggested_patch_diff)) {
+        patchSection.style.display = 'block';
+        const sampleDiff = `--- a/main.py\n+++ b/main.py\n@@ -2,2 +2,4 @@\n def calculate_average(numbers):\n+    if not numbers:\n+        return 0\n     total = sum(numbers)`;
+        patchDiffView.value = trace.diagnosis.suggested_patch_diff || sampleDiff;
+      } else {
+        patchSection.style.display = 'none';
+      }
+    }
+
+    async function verifyPatch() {
+      const outcomeBox = document.getElementById('verifyOutcomeBox');
+      outcomeBox.innerHTML = '<div style="color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;"><div class="spinner"></div> Executing reproduction and regression tests in isolated sandbox...</div>';
+
+      const payload = {
+        repo_path: document.getElementById('repoPath').value,
+        diff_text: document.getElementById('patchDiffView').value,
+        reproduction_test: "tests/test_main.py::test_calculate_average",
+        regression_test: "tests/test_main.py::test_process_data"
+      };
+
+      try {
+        const res = await fetch('/api/verify-patch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        let color = 'var(--accent-amber)';
+        if (data.outcome === 'VERIFIED') color = 'var(--accent-emerald)';
+        else if (data.outcome.includes('FAILED')) color = 'var(--accent-rose)';
+
+        outcomeBox.innerHTML = `
+          <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--card-border); border-left: 4px solid ${color}; padding: 0.85rem; border-radius: 6px;">
+            <div style="font-weight: 700; color: ${color}; font-size: 0.95rem; margin-bottom: 4px;">
+              STATUS: ${data.outcome}
+            </div>
+            <div style="color: var(--text-main); margin-bottom: 6px;">${escapeHtml(data.message)}</div>
+            ${data.reproduction_test_result ? `<div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">Reproduction Test: ${escapeHtml(data.reproduction_test_result.summary)} (${data.reproduction_test_result.duration_seconds}s)</div>` : ''}
+            ${data.regression_test_result ? `<div style="font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">Regression Test: ${escapeHtml(data.regression_test_result.summary)} (${data.regression_test_result.duration_seconds}s)</div>` : ''}
+          </div>
+        `;
+        document.getElementById('metOutcome').innerText = data.outcome;
+        document.getElementById('metOutcome').style.color = color;
+      } catch (e) {
+        outcomeBox.innerHTML = `<div style="color: var(--accent-rose);">Verification failed: ${e}</div>`;
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function runBenchmarkLive() {
+      const loader = document.getElementById('benchLoader');
+      loader.style.display = 'flex';
+      try {
+        const res = await fetch('/api/benchmark/run?token_budget=2000');
+        const data = await res.json();
+        const tbody = document.getElementById('benchBody');
+        tbody.innerHTML = '';
+        for (const [key, m] of Object.entries(data.metrics)) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${key}</code></td>
+            <td>${(m.top_1_fl_accuracy * 100).toFixed(1)}%</td>
+            <td>${(m.top_5_fl_accuracy * 100).toFixed(1)}%</td>
+            <td>${(m.diagnosis_correctness * 100).toFixed(1)}%</td>
+            <td>${(m.inconclusive_rate * 100).toFixed(1)}%</td>
+            <td>${(m.verified_fix_rate * 100).toFixed(1)}%</td>
+            <td>${m.avg_total_tokens.toFixed(0)}</td>
+            <td>${m.median_latency_seconds.toFixed(3)}s</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      } catch (e) {
+        alert('Benchmark run failed: ' + e);
+      } finally {
+        loader.style.display = 'none';
+      }
+    }
+
+    async function loadTraces() {
+      const res = await fetch('/api/traces');
+      const traces = await res.json();
+      const tbody = document.getElementById('tracesBody');
+      tbody.innerHTML = '';
+      traces.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><code>${t.task_id}</code></td>
+          <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.repo_path}</td>
+          <td><code>${t.strategy_used}</code></td>
+          <td>${t.accounting.total_tokens}</td>
+          <td>$${t.accounting.estimated_cost_usd.toFixed(4)}</td>
+          <td>${t.diagnosis ? t.diagnosis.validation_status : 'N/A'}</td>
+          <td>${t.latency_seconds.toFixed(2)}s</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadSampleRepo() {
+      document.getElementById('repoPath').value = '.';
+      document.getElementById('bugDesc').value = 'ZeroDivisionError in calculate_average when numbers list is empty';
+      document.getElementById('rawTb').value = 'Traceback (most recent call last):\n  File "main.py", line 6, in calculate_average\n    return total / len(numbers)\nZeroDivisionError: division by zero';
+    }
+
+    window.onload = initStatus;
+  </script>
+</body>
+</html>
